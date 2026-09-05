@@ -10,9 +10,35 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { meta, nivel, dias, equipo, lesiones, edad } = req.body || {};
+  const { meta, nivel, dias, equipo, lesiones, edad, lang } = req.body || {};
+  const isEnglish = lang === 'en';
 
-  const prompt = `Eres un entrenador personal experto. Genera una rutina de entrenamiento semanal en formato JSON puro (sin markdown, sin backticks, solo el objeto JSON) para esta persona:
+  const prompt = isEnglish
+    ? `You are an expert personal trainer. Generate a weekly workout routine in pure JSON format (no markdown, no backticks, just the JSON object) for this person. Respond entirely in English.
+
+- Goal: ${meta}
+- Level: ${nivel}
+- Available days: ${dias}
+- Equipment: ${equipo}
+- Injuries/limitations: ${lesiones}
+- Age: ${edad}
+
+Respond ONLY with this exact JSON format, nothing else:
+{
+  "titulo": "short, motivating title for the plan (in English)",
+  "resumen": "1-2 sentences explaining the plan's approach (in English)",
+  "dias": [
+    {
+      "nombre": "Day 1 - Focus name (e.g: Upper body)",
+      "ejercicios": [
+        {"nombre": "string", "series_reps": "e.g: 4x10", "nota": "brief rest or tip, optional"}
+      ]
+    }
+  ]
+}
+
+Include as many objects in "dias" as the number of available days indicates. Each day must have 5 to 7 exercises. If there are injuries, avoid exercises that would aggravate them and mention it briefly in the relevant exercise's note.`
+    : `Eres un entrenador personal experto. Genera una rutina de entrenamiento semanal en formato JSON puro (sin markdown, sin backticks, solo el objeto JSON) para esta persona:
 
 - Meta: ${meta}
 - Nivel: ${nivel}

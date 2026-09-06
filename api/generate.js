@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
     "grasas_g": "gramos de grasa diarios (ej: 70g)",
     "notas": "1-2 frases con consejos generales de alimentación para esta meta",
     "menu_dia": [
-      {"comida": "Desayuno", "descripcion": "ejemplo de comida con porciones aproximadas"},
+      {"comida": "Desayuno", "descripcion": "ejemplo de comida con la cantidad exacta de cada alimento en onzas o gramos y medidas caseras (ej: 6 oz de pechuga de pollo, 1 taza de arroz, 1/2 aguacate)"},
       {"comida": "Almuerzo", "descripcion": "..."},
       {"comida": "Cena", "descripcion": "..."},
       {"comida": "Snack", "descripcion": "..."}
@@ -37,7 +37,7 @@ module.exports = async function handler(req, res) {
     "grasas_g": "daily fat grams (e.g: 70g)",
     "notas": "1-2 sentences with general nutrition advice for this goal",
     "menu_dia": [
-      {"comida": "Breakfast", "descripcion": "example meal with approximate portions"},
+      {"comida": "Breakfast", "descripcion": "example meal with the exact amount of each food in ounces or grams and household measures (e.g: 6 oz chicken breast, 1 cup rice, 1/2 avocado)"},
       {"comida": "Lunch", "descripcion": "..."},
       {"comida": "Dinner", "descripcion": "..."},
       {"comida": "Snack", "descripcion": "..."}
@@ -62,7 +62,7 @@ Respond ONLY with this exact JSON format, nothing else:
     {
       "nombre": "Day 1 - Focus name (e.g: Upper body)",
       "ejercicios": [
-        {"nombre": "string", "series_reps": "e.g: 4x10", "nota": "brief rest or tip, optional"}
+        {"nombre": "string", "series_reps": "e.g: 4x10", "descanso": "rest time between sets, e.g: 60-90 sec", "modificacion": "an easier or alternative version of this exercise for someone who can't perform it (injury, no equipment, too advanced)", "nota": "brief extra tip, optional"}
       ]
     }
   ]${includeNutrition ? nutritionBlockEn : ''}
@@ -86,7 +86,7 @@ Responde SOLO con este formato JSON exacto, nada más:
     {
       "nombre": "Día 1 - Nombre del enfoque (ej: Tren superior)",
       "ejercicios": [
-        {"nombre": "string", "series_reps": "ej: 4x10", "nota": "descanso o tip breve, opcional"}
+        {"nombre": "string", "series_reps": "ej: 4x10", "descanso": "tiempo de descanso entre series, ej: 60-90 seg", "modificacion": "una versión más fácil o alterna de este ejercicio para alguien que no pueda hacerlo (lesión, sin equipo, muy avanzado)", "nota": "tip extra breve, opcional"}
       ]
     }
   ]${includeNutrition ? nutritionBlockEs : ''}

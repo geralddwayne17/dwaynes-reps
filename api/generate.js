@@ -10,11 +10,42 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { meta, nivel, dias, equipo, lesiones, edad, lang } = req.body || {};
+  const { meta, nivel, dias, equipo, lesiones, edad, lang, plan } = req.body || {};
   const isEnglish = lang === 'en';
+  const includeNutrition = plan === 'nutrition' || plan === 'coaching';
+
+  const nutritionBlockEs = `,
+  "nutricion": {
+    "calorias": "número estimado de calorías diarias (ej: 2200 kcal)",
+    "proteina_g": "gramos de proteína diarios (ej: 150g)",
+    "carbohidratos_g": "gramos de carbohidratos diarios (ej: 220g)",
+    "grasas_g": "gramos de grasa diarios (ej: 70g)",
+    "notas": "1-2 frases con consejos generales de alimentación para esta meta",
+    "menu_dia": [
+      {"comida": "Desayuno", "descripcion": "ejemplo de comida con porciones aproximadas"},
+      {"comida": "Almuerzo", "descripcion": "..."},
+      {"comida": "Cena", "descripcion": "..."},
+      {"comida": "Snack", "descripcion": "..."}
+    ]
+  }`;
+
+  const nutritionBlockEn = `,
+  "nutricion": {
+    "calorias": "estimated daily calories (e.g: 2200 kcal)",
+    "proteina_g": "daily protein grams (e.g: 150g)",
+    "carbohidratos_g": "daily carb grams (e.g: 220g)",
+    "grasas_g": "daily fat grams (e.g: 70g)",
+    "notas": "1-2 sentences with general nutrition advice for this goal",
+    "menu_dia": [
+      {"comida": "Breakfast", "descripcion": "example meal with approximate portions"},
+      {"comida": "Lunch", "descripcion": "..."},
+      {"comida": "Dinner", "descripcion": "..."},
+      {"comida": "Snack", "descripcion": "..."}
+    ]
+  }`;
 
   const prompt = isEnglish
-    ? `You are an expert personal trainer. Generate a weekly workout routine in pure JSON format (no markdown, no backticks, just the JSON object) for this person. Respond entirely in English.
+    ? `You are an expert personal trainer${includeNutrition ? ' and nutrition coach' : ''}. Generate a weekly workout routine${includeNutrition ? ' plus a daily nutrition guide' : ''} in pure JSON format (no markdown, no backticks, just the JSON object) for this person. Respond entirely in English.
 
 - Goal: ${meta}
 - Level: ${nivel}
@@ -34,11 +65,11 @@ Respond ONLY with this exact JSON format, nothing else:
         {"nombre": "string", "series_reps": "e.g: 4x10", "nota": "brief rest or tip, optional"}
       ]
     }
-  ]
+  ]${includeNutrition ? nutritionBlockEn : ''}
 }
 
-Include as many objects in "dias" as the number of available days indicates. Each day must have 5 to 7 exercises. If there are injuries, avoid exercises that would aggravate them and mention it briefly in the relevant exercise's note.`
-    : `Eres un entrenador personal experto. Genera una rutina de entrenamiento semanal en formato JSON puro (sin markdown, sin backticks, solo el objeto JSON) para esta persona:
+Include as many objects in "dias" as the number of available days indicates. Each day must have 5 to 7 exercises. If there are injuries, avoid exercises that would aggravate them and mention it briefly in the relevant exercise's note.${includeNutrition ? ' Base the nutrition numbers on the person\'s goal, age, and activity level implied by their training days.' : ''}`
+    : `Eres un entrenador personal experto${includeNutrition ? ' y coach de nutrición' : ''}. Genera una rutina de entrenamiento semanal${includeNutrition ? ' más una guía de alimentación diaria' : ''} en formato JSON puro (sin markdown, sin backticks, solo el objeto JSON) para esta persona:
 
 - Meta: ${meta}
 - Nivel: ${nivel}
@@ -58,10 +89,10 @@ Responde SOLO con este formato JSON exacto, nada más:
         {"nombre": "string", "series_reps": "ej: 4x10", "nota": "descanso o tip breve, opcional"}
       ]
     }
-  ]
+  ]${includeNutrition ? nutritionBlockEs : ''}
 }
 
-Incluye tantos objetos en "dias" como el número de días disponibles indica. Cada día debe tener entre 5 y 7 ejercicios. Si hay lesiones, evita ejercicios que las agraven y dilo brevemente en la nota del ejercicio relevante.`;
+Incluye tantos objetos en "dias" como el número de días disponibles indica. Cada día debe tener entre 5 y 7 ejercicios. Si hay lesiones, evita ejercicios que las agraven y dilo brevemente en la nota del ejercicio relevante.${includeNutrition ? ' Basa los números de nutrición en la meta, edad y nivel de actividad implícito por los días de entrenamiento de la persona.' : ''}`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -88,9 +119,9 @@ Incluye tantos objetos en "dias" como el número de días disponibles indica. Ca
     const textBlock = data.content.find(b => b.type === 'text');
     let raw = textBlock ? textBlock.text : '{}';
     raw = raw.replace(/```json|```/g, '').trim();
-    const plan = JSON.parse(raw);
+    const planResult = JSON.parse(raw);
 
-    res.status(200).json({ plan });
+    res.status(200).json({ plan: planResult });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'No se pudo generar la rutina.' });
